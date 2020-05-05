@@ -1,0 +1,6 @@
+#!/bin/tcsh
+
+# python geex_sqlalchemy_test.py -v
+# testoob geex_sqlalchemy_test.py --verbose --immediate --debug
+
+testoob geex_sqlalchemy_test.py -v
