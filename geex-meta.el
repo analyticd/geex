@@ -4,7 +4,7 @@
 ;;
 ;; Author: Per B. Sederberg, Greg Detre
 ;; Keywords: hypermedia
-;; Date: 
+;; Date:
 ;;
 ;; This file is part of Emacs Freex.  It is not part of GNU
 ;; Emacs.
@@ -32,7 +32,6 @@
 
 ;;; Code:
 
-
 ;; set the required files
 (require 'geex-embed)
 
@@ -44,7 +43,6 @@
 ;; (autoload 'pymacs-call "pymacs")
 ;; (eval-after-load "pymacs"
 ;;   '(add-to-list 'pymacs-load-path "/home/greg/elisp/geex"))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; initialize variables
@@ -68,20 +66,15 @@
 (add-to-list 'geex-embed-elements
              '("embedded-tag-children" t t nil geex-meta-create-embedded-tag-children))
 
-
 (defvar geex-meta-complete-alias-hist nil
   "This is the history list for geex-meta-complete-alias." )
-
 
 (defvar geex-meta t
   "When this variable exists, it shows that geex-meta has
 been loaded and that the functions are available for use.")
 
-
 (defvar geex-db-name "geex.db"
   "A relative path to the database file from geex-mode-dir.")
-
-
 
 ;; the '-hooks' is supposed to signify that these
 ;; take a nugget alias as an argument - see
@@ -90,10 +83,8 @@ been loaded and that the functions are available for use.")
   "A list of hooks that take an ALIAS argument that will get run
 whenever geex-meta-update-index creates a new nugget.")
 
-
 (defvar geex-mode-ext "geex"
   "The extension for all geex files. Should not include a dot.")
-
 
 (defun geex-full-db-name ()
   "Returns the full pathname to the database, by joining
@@ -105,7 +96,6 @@ their .emacs."
   ;; geex_full_db_name into a function
   (concat (file-name-as-directory geex-mode-dir)
           geex-db-name))
-
 
 (defun geex-meta-connect-init-db ()
   "This will try and connect to the db. If the db doesn't exist,
@@ -119,7 +109,6 @@ geex-sqlalchemy."
    geex-mode-ext ; file extension
    ))
 
-
 (defvar fsqa nil
 "This is the global instance of the Fsqa class that contains all
 the db and metadata objects in geex-sqlalchemy.")
@@ -128,15 +117,13 @@ the db and metadata objects in geex-sqlalchemy.")
 ;; non-nil variable
 (setq fsqa (geex-meta-connect-init-db))
 
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; metadata
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun geex-meta-create-meta (beg end id)
   "Handle an embedded metadata."
-  (let ((beg-file nil) 
+  (let ((beg-file nil)
         (end-file nil)
         (priority
          (+ (geex-embed-get-highest-priority-at beg) 1))
@@ -162,7 +149,6 @@ the db and metadata objects in geex-sqlalchemy.")
     ;; goto the beginning of the region
     (goto-char beg)
     ))
-
 
 (defun geex-meta-insert-meta (ov)
 
@@ -190,13 +176,12 @@ the db and metadata objects in geex-sqlalchemy.")
     (insert (concat (propertize "tag-children: " 'intangible nil)
                     "<tag-children>" id "</tag-children>"
                     (propertize "\n\n" 'intangible nil)))
-    
-    (insert (propertize
-             (format "modtime: %s \n\n" 
-                     (geex-sqlalchemy-get-last-modtime id))))
-    
-    (overlay-put ov 'meta t)))
 
+    (insert (propertize
+             (format "modtime: %s \n\n"
+                     (geex-sqlalchemy-get-last-modtime id))))
+
+    (overlay-put ov 'meta t)))
 
 (defun geex-meta-insert-metadata-here ()
   "Create a throwaway metadata overlay at point. By default,
@@ -213,8 +198,6 @@ this will be metadata for the buffer/embedding at point."
     (geex-meta-remove-meta-overlays id)
 
     (geex-meta-create-meta (point) (point) id)))
-
-
 
 (defun geex-meta-get-meta-overlays (&optional nugid)
   "Returns a list containing meta overlays in this buffer. If
@@ -247,15 +230,14 @@ overlays that use different insert-functs."
             ;; can just return all the meta overlays
             (list
              (list 'insert-funct 'geex-meta-insert-meta)))))
-    
+
     (geex-embed-overlays-with-properties-in
      (point-min) (point-max) props)))
-
 
 (defun geex-meta-remove-meta-overlays (&optional nugid)
   "Remove all the meta overlays for nugid NUGID. If NUGID is nil,
 it will remove all meta-overlays in the buffer."
-  
+
   (let ((meta-ovs nil))
     (setq meta-ovs (geex-meta-get-meta-overlays nugid))
 
@@ -276,14 +258,12 @@ it will remove all meta-overlays in the buffer."
       (geex-embed-remove-overlay (car meta-ovs) t)
       (setq meta-ovs (geex-meta-get-meta-overlays nugid)))))
 
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; tag parents
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun geex-meta-create-tag-parents (beg end attr)
-  (let ((beg-file nil) 
+  (let ((beg-file nil)
         (end-file nil)
         (id (geex-embed-get-id-at-point))
         (priority
@@ -303,19 +283,16 @@ it will remove all meta-overlays in the buffer."
     ;; goto the beginning of the region
     (goto-char beg)))
 
-
 (defun geex-meta-insert-tag-parents (ov)
   (insert (concat (geex-sqlalchemy-get-tag-parents-delim
                    (overlay-get ov 'id)) " "))
   ov)
-
 
 (defun geex-meta-save-tag-parents ()
   (geex-sqlalchemy-put-tag-parents-delim
    (plist-get geex-embed-ov-props 'id) (buffer-string))
   ;; (set-buffer-modified-p nil)
   t)
-
 
 (defun geex-meta-edit-tag-parents-in-minibuffer ()
   "Presents the semicolon-delimited list of tag-parents for
@@ -351,7 +328,6 @@ geex-meta-minibuffer-aliases."
        ))
    )))
 
-
 ;; we don't need to write this out explicitly as a function,
 ;; but it makes it easier to debug
 ;;
@@ -360,8 +336,6 @@ geex-meta-minibuffer-aliases."
 ;;                  geex-sqlalchemy-edit-tag-parents-in-minibuffer-complete)))
 (defun geex-meta-edit-tag-parents-in-minibuffer-dct (string predicate mode)
   (with-current-buffer (let ((window (minibuffer-selected-window))) (if (window-live-p window) (window-buffer window) (current-buffer))) (cond ((eq mode t) (all-completions string (geex-sqlalchemy-edit-tag-parents-in-minibuffer-complete string) predicate)) ((not mode) (try-completion string (geex-sqlalchemy-edit-tag-parents-in-minibuffer-complete string) predicate)) (t (test-completion string (geex-sqlalchemy-edit-tag-parents-in-minibuffer-complete string) predicate)))))
-
-
 
 (defun geex-meta-add-tag-parents-in-minibuffer ()
   "Keeps asking you for tag-parents (with tab completion) and
@@ -403,14 +377,12 @@ inserting them until you give it a blank one or press C-g."
              child-nugid
              chosen)))))
 
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; tag-children
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun geex-meta-create-tag-children (beg end attr)
-  (let ((beg-file nil) 
+  (let ((beg-file nil)
         (end-file nil)
         (id (geex-embed-get-id-at-point))
         (priority
@@ -430,12 +402,10 @@ inserting them until you give it a blank one or press C-g."
     ;; goto the beginning of the region
     (goto-char beg)))
 
-
 (defun geex-meta-insert-tag-children (ov)
   (insert (concat (geex-sqlalchemy-get-tag-children-delim
                    (overlay-get ov 'id)) " "))
   ov)
-
 
 (defun geex-meta-save-tag-children ()
   (geex-sqlalchemy-put-tag-children-delim
@@ -443,13 +413,12 @@ inserting them until you give it a blank one or press C-g."
   ;; (set-buffer-modified-p nil)
   t)
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; aliases
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun geex-meta-create-aliases (beg end &rest ignore)
-  (let ((beg-file nil) 
+  (let ((beg-file nil)
         (end-file nil)
         (id (geex-embed-get-id-at-point))
         (priority
@@ -469,19 +438,16 @@ inserting them until you give it a blank one or press C-g."
     ;; goto the beginning of the region
     (goto-char beg)))
 
-
 (defun geex-meta-insert-aliases (ov)
   (insert (concat (geex-sqlalchemy-get-aliases-delim
                     (overlay-get ov 'id)) " "))
   ov)
-
 
 (defun geex-meta-save-aliases ()
   (geex-sqlalchemy-put-aliases-delim
    (plist-get geex-embed-ov-props 'id) (buffer-string))
   ;; (set-buffer-modified-p nil)
   t)
-
 
 (defun geex-meta-edit-aliases-in-minibuffer ()
   "Presents the semicolon-delimited list of aliases for editing
@@ -498,14 +464,13 @@ in the minibuffer."
     "Aliases: " aliases)))
   (geex-fontify-update-implicit-link-regexp))
 
-
 (defun geex-meta-add-aliases-in-minibuffer ()
   "Keeps asking you for aliases (with tab completion) and
 inserting them until you give it a blank one or press C-g."
   (interactive)
   (let* ((id (geex-embed-get-id-at-point))
          (new-alias nil))
-    
+
     ;; definitely ask for at least one alias. if it's blank,
     ;; add-alias will just shrug and return nil. if it's
     ;; non-blank and legit, add-alias will return the alias
@@ -522,8 +487,6 @@ inserting them until you give it a blank one or press C-g."
              id
              (geex-meta-complete-alias nil "New alias: "))))))
 
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; embedded-tag-children
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -538,7 +501,7 @@ inserting them until you give it a blank one or press C-g."
 
 (defun geex-meta-create-embedded-tag-children (beg end attr)
     ;(geex-unhighlight-region beg end)
-    (let ((beg-file nil) 
+    (let ((beg-file nil)
           (end-file nil)
           (tag-parents-str nil)
           (priority (+ (geex-embed-get-highest-priority-at beg) 1)))
@@ -553,8 +516,8 @@ inserting them until you give it a blank one or press C-g."
 
       ;; the text between the elements tells us the
       ;; tag-parents whose children we're going to embed
-      (setq tag-parents-str (buffer-substring-no-properties 
-                             beg-file 
+      (setq tag-parents-str (buffer-substring-no-properties
+                             beg-file
                              end-file))
 
       ;; create the new overlay that will contain all our
@@ -564,7 +527,6 @@ inserting them until you give it a blank one or press C-g."
                                   'geex-meta-save-embedded-tag-children
                                   (list 'tag-parents-str tag-parents-str))
       (goto-char beg)))
-
 
 (defun geex-meta-insert-embedded-tag-children (ov)
 
@@ -587,28 +549,26 @@ inserting them until you give it a blank one or press C-g."
 
     ;; and a couple at the end
     (insert "\n\n")
-    
+
     ;; and store it for good measure
     (overlay-put ov 'tag-parents-lst tag-parents-lst))
   ov)
-
 
 (defun geex-meta-save-embedded-tag-children ()
   ;; not sure if i have to do anything here, so i'm leaving
   ;; it blank
   t)
-  
 
 (defun geex-meta-insert-embedded-tag-children-in-temp-buffer (tag-parents-str)
 
   (let* ((bufname (format "embed %s" tag-parents-str))
          ;; swap the slashes for hyphens, and get rid of the stars
-         (vis-filename 
+         (vis-filename
           (geex-meta-replace-regexp-in-string
-           "/" "-" 
+           "/" "-"
            (geex-meta-replace-regexp-in-string
             "*" "" bufname))))
-    
+
     ;; generate a temp buffer and switch to it
     (switch-to-buffer
      (generate-new-buffer bufname))
@@ -624,9 +584,9 @@ inserting them until you give it a blank one or press C-g."
              "." geex-mode-ext))
 
     (setq geex-embed-ov-props
-          (plist-put geex-embed-ov-props 'save-funct 
+          (plist-put geex-embed-ov-props 'save-funct
                      'geex-embed-overlay-save-null))
-    
+
     ;; we're wrapping this in a condition-case (i.e. a
     ;; try/catch, in case there *are* no embedded
     ;; tag-children)
@@ -641,8 +601,6 @@ inserting them until you give it a blank one or press C-g."
 
     (set-buffer-modified-p nil)))
 
-
-
 (defun geex-meta-create-embedroll (nuglist)
   "Inserts an embedroll (a list of <file>embedme</file> calls,
 with a pair of lines between each. Does not append an extension
@@ -651,8 +609,6 @@ to the items in NUGLIST."
    (mapcar
     (lambda (nug) (format "<file>%s</file>" nug))
     nuglist) "\n\n"))
-
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; utility functions
@@ -667,11 +623,9 @@ lst-b."
         (push el-a a-not-in-b)))
     a-not-in-b))
 
-
 (defun geex-meta-remove-regexp-from-string (regexp str)
   "Removes all instances of the regexp from the string."
   (geex-meta-replace-regexp-in-string regexp "" str))
-
 
 ;; from muse-replace-regexp-in-string
 (defun geex-meta-replace-regexp-in-string
@@ -694,7 +648,6 @@ If fifth arg LITERAL is non-nil, insert REPLACEMENT literally."
             (setq start (+ start repl-len)
                   text (replace-match replacement fixedcase literal text)))))
       text)))
-
 
 ;; (defun geex-meta-rename-this ()
 ;;   "Updates the filename and database alias for the nugget at
@@ -728,7 +681,6 @@ If fifth arg LITERAL is non-nil, insert REPLACEMENT literally."
 ;;   ;;
 ;;   ;; kill the buffer, then reopen it
 ;; )
-  
 
 (defun geex-meta-update-index ()
   "Update the metadata index in the db according to the
@@ -756,7 +708,7 @@ db. Create db entries for them.
     (when (not (file-exists-p full-db-name))
       (message (format "Creating %s" full-db-name))
       (geex-meta-connect-init-db))
-    
+
     (let ((files (directory-files
                   geex-mode-dir ;; where to look
                   nil ;; full file names?
@@ -767,18 +719,18 @@ db. Create db entries for them.
           (db-but-no-file nil)
           (file-but-no-db nil)
           (file-but-no-db-alist nil))
-      
+
       ;; find all the files that don't have db entries - step
       ;; #1
       (setq file-but-no-db
             (geex-meta-member-a-not-in-b files db-filenames))
-      
+
       ;; find all the db entries whose filenames don't exist
       ;; (because they've either been moved or renamed) - step
       ;; #2
       (setq db-but-no-file
             (geex-meta-member-a-not-in-b db-filenames files))
-      
+
       ;; ask the user how to deal with those db entries that
       ;; don't have files - step #3
       (dolist (dbnf db-but-no-file)
@@ -829,11 +781,11 @@ db. Create db entries for them.
                   (delete new-filename file-but-no-db))
             (message
              (format "Changing %s to %s" dbnf new-filename)))))
-      
+
       ;; for every file without a db entry, create a db entry
       ;; - step #5
       (dolist (fbnd file-but-no-db)
-        
+
         (let ((fbnd-no-ext (geex-sqlalchemy-remove-ext fbnd)))
 
           ;; if we're mirroring the content in the db, this has
@@ -855,12 +807,10 @@ db. Create db entries for them.
         (message (format "Added %s to db" fbnd))))))
 
   (message "Finished checking files")
-  
+
   (geex-sqlalchemy-update-implicit-link-regexp)
   (message "Finished updating regex")
   (message nil))
-
-
 
 (defun geex-meta-remove-parents-from-alias-chosen (chosen)
   "geex-sqlalchemy-filter-by-tag-parents returns an alias, filtered by
@@ -871,8 +821,6 @@ db. Create db entries for them.
   everything up to that final '/'."
   (geex-meta-replace-regexp-in-string
    "\\(.*\\)/" "" chosen))
-
-
 
 (defun geex-meta-parse-alias-into-tag-parents (alias)
   "By default, new nuggets enter the world with no tag-parents.
@@ -910,13 +858,11 @@ them.
           (concat tag-parents
                   " ; "
                   (geex-meta-hyphens-to-semicolons-delim alias)))
-    
+
   ;; set ALIAS's tag-parents to our new list of tag-parents
   (geex-sqlalchemy-put-tag-parents-delim-a
    alias
    tag-parents)))
-
-
 
 ;; (geex-join '("1" "2" "3") ";")
 ;; should return "1;2;3"
@@ -931,12 +877,9 @@ you send in a list of strings."
       (setq str (concat str delim el)))
     str))
 
-
 ;; "lecture - blah- boosting" -> "lecture ; blah- boosting"
 (defun geex-meta-hyphens-to-semicolons-delim (str)
   (geex-meta-replace-regexp-in-string " - " " ; " str))
-
-
 
 (defun geex-meta-define-new-or-insert-metadata ()
   "If the mark is active, then
@@ -952,11 +895,10 @@ highest overlay at point."
       (progn
         (save-buffer)
         (setq id (geex-embed-get-id-at-point)))))
-  
+
   (if mark-active
       (geex-embed-define-region-as-nugget (point) (mark))
     (geex-meta-insert-metadata-here)))
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; completion functions
@@ -977,7 +919,7 @@ highest overlay at point."
         ;; one will take over again
         (mlcm minibuffer-local-completion-map)
         (query nil))
-    
+
     ;; this is only going to affect the local version. it'll
     ;; stop SPC being bound to complete, so that we can type
     ;; new nuggets with spaces in
@@ -990,21 +932,20 @@ highest overlay at point."
           (completing-read
            ;; if they fed in a prompt, use that, else default
            (if prompt prompt "Freex alias: ") ;; prompt
-           
+
            ;; programmatically complete, whittling down by
            ;; tag-parents
            'geex-meta-filter-by-tag-parents-dct
-           
+
            nil ;; predicate
            require-match
            in-in ;; initial-input
            geex-meta-complete-alias-hist))
-    
+
     ;; set the keymap back to whatever it was
     (setq minibuffer-local-completion-map mlcm)
-    
+
     query))
-          
 
 ;; xxx at some point, i should rename get-query, or point all
 ;; the complete-alias calls to get-query
@@ -1014,10 +955,6 @@ highest overlay at point."
 
 (defun geex-meta-new-file-header (filename_noext)
   (insert (concat "<sect level=\"1\">" filename_noext "</sect>\n\n")))
-
-
-(defun geex-meta-new-org-file-header (filename_noext)
-  (insert (concat "#+TITLE: " filename_noext "\n\n")))
 
 (defun geex-meta-new-muse-file-header (filename_noext)
   (insert (concat "#title " filename_noext "\n\n")))
@@ -1053,17 +990,11 @@ nuggets."
       (geex-log "In geex-meta-find, new filename: %s" filename)
       (find-file filename)
       ;; add the nugget name at the top of the new nugget
-      (cond ((eq geex-mode-selection 'org)
-             (geex-meta-new-org-file-header query))
+      (cond ((eq geex-mode-selection 'geex)
+             (geex-meta-new-file-header query))
             ((eq geex-mode-selection 'muse)
-             (geex-meta-new-muse-file-header query))
-            ((eq geex-mode-selection 'kotl)
-             ;do nothing, koutliner files don't have a concept of titles
-             )
-            ((eq geex-mode-selection 'geex)
-             (geex-meta-new-file-header query)))
-      (clear-visited-file-modtime)
-      )
+             (geex-meta-new-muse-file-header query)))
+      (clear-visited-file-modtime))
 
       ;; try and open this single nugget
      ((equal (length chosen) 1)
@@ -1071,7 +1002,7 @@ nuggets."
       ;; check that the user hasn't given us an empty alias
       (unless (> (length chosen) 1)
         (error "Can't open an empty alias"))
-      (setq filename (geex-sqlalchemy-get-filename-a 
+      (setq filename (geex-sqlalchemy-get-filename-a
                       (geex-meta-remove-parents-from-alias-chosen chosen)))
         ;; if the filename doesn't exist in the db, then we're
         ;; going to have to create a new file called
@@ -1084,20 +1015,16 @@ nuggets."
                              filename))
       ;; ok. now we can either load or create our new file
         (find-file filename))
-      
+
      ;; create a temp buffer into which to embed the
      ;; multiple nuggets in this list
      ((> (length chosen) 1)
       (geex-meta-insert-embedded-tag-children-in-temp-buffer query)))))
 
-
-
 (defun geex-meta-complete-alias-filename (&optional prompt)
   "Asks the user for an alias, and then returns its filename."
   (geex-sqlalchemy-get-filename-a
    (geex-meta-complete-alias prompt t)))
-
-
 
 (defun geex-meta-complete-alias-new (&optional prompt require-match in-in)
   (unless prompt
@@ -1111,15 +1038,13 @@ nuggets."
 
     chosen))
 
-
-
 ;; (insert (format "%S"
 ;;     (dynamic-completion-table geex-sqlalchemy-filter-by-tag-parents)))
 (defun geex-meta-filter-by-tag-parents-dct (string predicate mode)
 
   ;; trying to fix the issue where SPC doesn't add spaces
   ;; for unknown aliases, but this didn't have any effect
-  ;; 
+  ;;
   ;; (local-set-key "SPC" (lambda () (insert " ")))
   (with-current-buffer
       (let ((window (minibuffer-selected-window)))
@@ -1152,7 +1077,5 @@ nuggets."
        predicate)
       ))))
 
-
 ;; tell what we provide
 (provide 'geex-meta)
-

@@ -48,54 +48,54 @@
   (let ((filename (buffer-file-name)))
     ;; we only want to go into geex mode if there is a filename and
     (if (not filename)
-	;; can't start geex unless there is a buffer file name
-	(progn
+        ;; can't start geex unless there is a buffer file name
+        (progn
     (turn-off-geex-mode)
-	  (message "You can not enter geex mode if the buffer has no filename."))
+          (message "You can not enter geex mode if the buffer has no filename."))
       ;; is in the proper geex directory
       (if (not (equal (file-name-directory filename) geex-mode-dir))
-	  ;; we have a filename, but it is in the wrong directory
-	  ;; don't go into geex mode
-	  (progn
+          ;; we have a filename, but it is in the wrong directory
+          ;; don't go into geex mode
+          (progn
       (turn-off-geex-mode)
-	    (message "You can not enter geex mode when not in the proper directory."))
-	;; we are either visiting a valid geex file or a scratch buffer
-	(progn
-	  ;; if the buffer is visiting a file (i.e. not scratch),
-	  ;; and that file exists, then we can try and get its id
-	  (if (file-exists-p filename)
-	      (progn
-		;; need to tell it to remove overlays before, and re-embed
-		;; them after, reverting the buffer
-		;;
-		;; the final two arguments say to prepend it (rather than
-		;; append - we don't really care) and to make this a
-		;; buffer-local variable (this is important, so that our
-		;; revert modifications only affect geex-mode
-		(add-hook 'before-revert-hook
-			  'geex-embed-before-revert nil t)
-		(add-hook 'after-revert-hook
-			  'geex-embed-after-revert nil t)
-		(setq geex-embed-ov-props
-		      (plist-put
-		       geex-embed-ov-props 'id
-		       (number-to-string
-			(geex-sqlalchemy-get-nugid-from-filename
-			 (file-name-nondirectory (buffer-file-name)))))))
-	    ;; This is the case when we have a scratch/temporary buffer that
-	    ;; contains embedded nuggets.  In such a case we would like to
-	    ;; save the nuggets, but not save the scratch buffer holding
-	    ;; them.  If you would like to save the scratch buffer to file,
-	    ;; it is necessary to save as.
+            (message "You can not enter geex mode when not in the proper directory."))
+        ;; we are either visiting a valid geex file or a scratch buffer
+        (progn
+          ;; if the buffer is visiting a file (i.e. not scratch),
+          ;; and that file exists, then we can try and get its id
+          (if (file-exists-p filename)
+              (progn
+                ;; need to tell it to remove overlays before, and re-embed
+                ;; them after, reverting the buffer
+                ;;
+                ;; the final two arguments say to prepend it (rather than
+                ;; append - we don't really care) and to make this a
+                ;; buffer-local variable (this is important, so that our
+                ;; revert modifications only affect geex-mode
+                (add-hook 'before-revert-hook
+                          'geex-embed-before-revert nil t)
+                (add-hook 'after-revert-hook
+                          'geex-embed-after-revert nil t)
+                (setq geex-embed-ov-props
+                      (plist-put
+                       geex-embed-ov-props 'id
+                       (number-to-string
+                        (geex-sqlalchemy-get-nugid-from-filename
+                         (file-name-nondirectory (buffer-file-name)))))))
+            ;; This is the case when we have a scratch/temporary buffer that
+            ;; contains embedded nuggets.  In such a case we would like to
+            ;; save the nuggets, but not save the scratch buffer holding
+            ;; them.  If you would like to save the scratch buffer to file,
+            ;; it is necessary to save as.
             ;;
             ;; Bleurgh. This breaks if you try and create a
             ;; new nugget by editing newnugget.geex, then
             ;; trying to save.
-	    (progn
-	      (setq geex-embed-ov-props
-		    (plist-put geex-embed-ov-props 'id nil))
-	      ;; set the save function to null so that the base file will
-	      ;; not be saved to disk (and is hence a throwaway buffer)
+            (progn
+              (setq geex-embed-ov-props
+                    (plist-put geex-embed-ov-props 'id nil))
+              ;; set the save function to null so that the base file will
+              ;; not be saved to disk (and is hence a throwaway buffer)
               ;;
               ;; xxx
               ;;              (setq geex-embed-ov-props
@@ -103,12 +103,12 @@
               ;;                               'geex-embed-overlay-save-null))
               ))
 
-	  (dolist (hook geex-mode-hook)
-	    (eval (list hook)))
-	  ;; start using geex custom save
-	  (add-hook 'write-contents-hooks 'geex-embed-save nil t)
+          (dolist (hook geex-mode-hook)
+            (eval (list hook)))
+          ;; start using geex custom save
+          (add-hook 'write-contents-hooks 'geex-embed-save nil t)
 
-	  ;; build the regex if this is the first time geex-mode has run
+          ;; build the regex if this is the first time geex-mode has run
           (if (boundp 'geex-mode-has-run-already)
               nil ; do nothing
               (progn
@@ -120,10 +120,6 @@
                  ;; the last argument tells it to be buffer local
                  ;; NOTE I can probably move this to geex config too.
                  (add-hook 'muse-colors-buffer-hook 'geex-fontify-region nil t))
-                ((eq major-mode 'org-mode)
-                 ;; See geex config for org-mode related config. Nothing to be done
-                 ;; here.
-                 )
                 (t
                  ;; do our own font-locking
                  (progn
@@ -134,26 +130,15 @@
                    ;; (font-lock-fontify-region-function . geex-fontify-region)
                    ;; (font-lock-unfontify-region-function
                    ;;  . geex-unhighlight-region)))
-                   (when (not geex-mode-fontify-org-elements)
-                     (set (make-local-variable
-                           'font-lock-fontify-region-function)
-                          'geex-fontify-region)
-                     ;; (set (make-local-variable
-                     ;;       'font-lock-unfontify-region-function)
-                     ;;      'geex-unhighlight-region)
-                     )
-                   (when (and (fboundp 'org-toggle-link-display)
-                              (not (eq geex-mode-selection 'org)))
-                     (dotimes (i 2)
-                       (org-toggle-link-display))) ; Hack to display org links
-                                                   ; by description.
-                    ;; NOTE Just in case user doesn't have font lock enabled by
-                    ;; default. Not needed if you already have font-lock-mode
-                    ;; enabled somewhere else.
-                    ;; (font-lock-mode 1)
+                   (set (make-local-variable
+                         'font-lock-fontify-region-function)
+                        'geex-fontify-region)
+                   ;; (set (make-local-variable
+                   ;;       'font-lock-unfontify-region-function)
+                   ;;      'geex-unhighlight-region)
                    )))
-	  ;; now do all the file embedding (and fontifying of embedded files)
-	  (geex-embed-buffer))))))
+          ;; now do all the file embedding (and fontifying of embedded files)
+          (geex-embed-buffer))))))
 
 (defun degeexify ()
   ;; save all the overlays before closing them
@@ -176,7 +161,7 @@
    :keymap geex-mode-map
    (when (not geex-embed-saving-p)
      (if geex-mode
-	 (geexify)
+         (geexify)
        (degeexify))))
 
 (defun geex-mode-list-files ()

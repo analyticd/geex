@@ -46,30 +46,25 @@
 ;;   '(add-to-list 'pymacs-load-path "~/dotfiles/emacs/geex/")) ; xxx
 
 (defcustom geex-mode-dir "~/geex/"
-  "Specify where the geex .db file and its .geex (or .muse, or .org) files
+  "Specify where the geex .db file and its .geex files
 will live.  (Make sure this directory exists.)"
   :type '(directory)
   :group 'geex-conf)
 
 (defcustom geex-mode-selection
   'geex
-  "Freex mode can operate in harmony (mostly) with org-mode, or
-with muse mode, or without an additional major mode, i.e., in geex mode."
+  "geex mode can operate in harmony with muse mode, or without an
+additional major mode, i.e., in geex mode."
   :type 'string
-  :options '('org 'muse 'kotl 'geex 'markdown)
+  :options '('muse
+             'geex)
   :group 'geex-conf)
 
 ;; Set the file extension that identifies geex files
-(cond ((eq geex-mode-selection 'org)
-       (setq geex-mode-ext "org"))
-      ((eq geex-mode-selection 'muse)
+(cond ((eq geex-mode-selection 'muse)
        (setq geex-mode-ext "muse"))
       ((eq geex-mode-selection 'geex)
        (setq geex-mode-ext "geex"))
-      ((eq geex-mode-selection 'markdown)
-       (setq geex-mode-ext "md"))
-      ((eq geex-mode-selection 'kotl)
-       (setq geex-mode-ext "kotl"))
       (t (setq geex-mode-ext "geex")))
 
 (defcustom geex-enable-implicit-links t
@@ -77,7 +72,6 @@ with muse mode, or without an additional major mode, i.e., in geex mode."
 nuggets. If performance is an issue, you can set this to nil."
   :type 'boolean
   :group 'geex-conf)
-
 
 (defcustom geex-embed-color-step 25
   "This is the global color step size used to determine how
@@ -88,12 +82,10 @@ overlays' red, green and blue values darker by a stepsize of
   :type 'integer
   :group 'geex-conf)
 
-
 (defcustom geex-completion-ignore-case t
   "Makes find-alias etc. case-insensitive."
   :type 'boolean
   :group 'geex-conf)
-
 
 ;; this is the regex for finding files in the directory that
 ;; should be inserted into the db. the caret at the
@@ -104,8 +96,6 @@ overlays' red, green and blue values darker by a stepsize of
 ;; have dots in them, this is fine for me
 (setq geex-mode-dir-filter (format "^[^.#]+\\.%s$" geex-mode-ext))
 
-
-
 (defun muse-geex-mode ()
   "Use muse mode and geex mode together."
   (when (not geex-embed-saving-p)
@@ -115,40 +105,16 @@ overlays' red, green and blue values darker by a stepsize of
     (when (equal (file-name-directory (buffer-file-name)) geex-mode-dir)
       (geex-mode))))
 
-
-(defun org-geex-mode ()
-  "Use org-mode and geex-mode together."
-  (when (not geex-embed-saving-p)
-    ;; must load org first
-    (org-mode)
-    ;; load geex only if file is in the geex dir
-    (when (equal (file-name-directory (buffer-file-name)) geex-mode-dir)
-      (geex-mode))))
-
-(defun kotl-geex-mode ()
-  "Use org-mode and geex-mode together."
-  (when (not geex-embed-saving-p)
-    ;; must load org first
-    (kotl-mode)
-    ;; load geex only if file is in the geex dir
-    (when (equal (file-name-directory (buffer-file-name)) geex-mode-dir)
-      (geex-mode))))
-
 (setq geex-file-suffix-regexp (format "\\.%s\\'" geex-mode-ext))
 ;;; Autoload configuration automatically chosen based on customization of
 ;;; geex-mode-selection.
 (add-to-list 'auto-mode-alist
              (cons geex-file-suffix-regexp
-                   (cond ((eq geex-mode-selection 'org)
-                          'org-geex-mode)
+                   (cond ((eq geex-mode-selection 'geex)
+                          'geex-mode)
                          ((eq geex-mode-selection 'muse)
                           'muse-geex-mode)
-                         ((eq geex-mode-selection 'geex)
-                          'geex-mode)
-                         ((eq geex-mode-selection 'kotl)
-                          'geex-mode)
                          (t 'geex-mode))))
-
 
 (defcustom geex-content-storage 'mirror-files-to-db
   "This determines how the content of your embeddings will
@@ -177,7 +143,6 @@ hasn't been tested, and probably isn't a good idea."
   :options '('mirror-files-to-db 'files 'db)
   :group 'geex-conf)
 
-
 ;; These next lines tell the database to update itself automatically
 ;; if there are any new files in the geex data directory, every time
 ;; you save
@@ -188,12 +153,10 @@ hasn't been tested, and probably isn't a good idea."
 (add-hook 'geex-embed-save-hook 'geex-meta-update-index)
 (add-hook 'geex-embed-save-hook 'geex-fontify-update-implicit-link-regexp)
 
-
 ;; This hook automatically tokenizes the filename by hyphens, and adds
 ;; all the parts as tags (very handy)
 (add-hook 'geex-meta-add-nugget-hooks
           'geex-meta-parse-alias-into-tag-parents)
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; optional keyboard shortcuts that could interfere with
@@ -204,7 +167,6 @@ hasn't been tested, and probably isn't a good idea."
 ;; (global-set-key [(alt l)] 'geex-meta-find)
 ;; (global-set-key [(hyper l)] 'geex-meta-find)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 (define-key geex-mode-map [(control =)] 'geex-embed-all-tag-children)
 
@@ -217,11 +179,6 @@ hasn't been tested, and probably isn't a good idea."
 
 (define-key geex-mode-map (kbd "RET") 'geex-hiert-newline-and-indent)
 (define-key geex-mode-map [(shift return)] 'newline)
-
-;;; NOTE Inteferes with org-meta-return for list items (when using extended org
-;;; functionality).
-;; (define-key geex-mode-map [(meta return)]
-;;   'geex-meta-define-new-or-insert-metadata)
 
 (define-key geex-mode-map [(meta shift return)]
   'geex-meta-edit-tag-parents-in-minibuffer)
@@ -236,6 +193,5 @@ hasn't been tested, and probably isn't a good idea."
 
 ;;; Load my extensions
 (require 'geex-extensions)
-
 
 (provide 'geex-conf)

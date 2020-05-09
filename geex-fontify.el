@@ -71,8 +71,8 @@ Functions should not modify the contents of the buffer."
 
 (defvar geex-fontify-regexp-list
   '((geex-element-regexp t
-			  geex-xml-process-element
-			  (geex-fontify-elements)))
+                          geex-xml-process-element
+                          (geex-fontify-elements)))
   "List of regexps to search for and process for geex-fontify.")
 
 (defvar geex-fontify-update-implicit-link-regexp-often
@@ -85,18 +85,10 @@ often, because they take a while if you have lots of nuggets.")
   ;; (message "geex-fontify-region")
   ;; Next form didn't seem to make a difference if commented out
   ;; remove everything in region, so we can put it back
-  ;; (when (not (eq geex-mode-selection 'org))
-  ;;   (geex-unhighlight-region beg end))
   ;; do implicit links
   (geex-fontify-process-implicit-links beg end)
-  ;; do org links in geex
-  (when (and (not (eq geex-mode-selection 'org))
-             geex-fontify-org-bracket-links)
-    ;; (geex-log "About to call geex-activate-org-bracket-links...")
-    (geex-activate-org-bracket-links))
   ;; process the region (sect-headings etc.)
-  (when (not (eq geex-mode-selection 'org))
-    (geex-xml-process-region beg end geex-fontify-regexp-list verbose)))
+  (geex-xml-process-region beg end geex-fontify-regexp-list nil))
 
 (defvar geex-fontify-ignore-implicit-links-to-active-nuggets t
   "If non-nil, fontification will ignore links to nuggets that are
@@ -113,24 +105,24 @@ active in the current buffer.")
 
 (defun geex-fontify-process-implicit-links (beg end)
   (let ((matches (geex-sqlalchemy-get-all-matching-implicit-links
-		  (buffer-substring-no-properties beg end)))
-	(modified-p (buffer-modified-p)))
+                  (buffer-substring-no-properties beg end)))
+        (modified-p (buffer-modified-p)))
     (message "geex: matches: %s" matches)
     (unwind-protect
-	(save-excursion
-	  (save-restriction
-	    (widen)
-	    ;; loop over matches
-	    (dolist (match matches)
-	      ;; correct for the offset into the file
-	      (geex-fontify-implicit-link-from-range (+ beg (nth 0 match))
-						      (+ beg (nth 1 match))))
-	    (set-buffer-modified-p modified-p))))))
+        (save-excursion
+          (save-restriction
+            (widen)
+            ;; loop over matches
+            (dolist (match matches)
+              ;; correct for the offset into the file
+              (geex-fontify-implicit-link-from-range (+ beg (nth 0 match))
+                                                      (+ beg (nth 1 match))))
+            (set-buffer-modified-p modified-p))))))
 
 (defun geex-fontify-implicit-link-from-range (beg end)
   ;; must figure out beg and end
   (let ((link-text (buffer-substring-no-properties beg end))
-	(link-file nil))
+        (link-file nil))
     ;; only add link if alias exists and not already a link.
     ;;
     ;; PBS - This is why the case-insensitive implicit linking is not
@@ -138,7 +130,7 @@ active in the current buffer.")
     ;; the alias is JubbaWubba and we put in jubbawubba, it's not
     ;; found.
     (when (and (geex-sqlalchemy-exist-nugget-a link-text)
-	       (not (get-text-property beg 'geex-link)))
+               (not (get-text-property beg 'geex-link)))
       ;; is an alias, so set the link-file from the alias
       (setq link-file (geex-sqlalchemy-get-filename-a link-text))
       ;; set the link-text properties to interactive link
@@ -147,19 +139,19 @@ active in the current buffer.")
       ;; looks like a link but isn't clickable, making it
       ;; easier to add carriage returns at the end of a link
       (add-text-properties beg
-			   (- end 1)
-			   (list 'face 'geex-link-face
-				 'geex-link t
-				 'keymap geex-fontify-link-local-map
+                           (- end 1)
+                           (list 'face 'geex-link-face
+                                 'geex-link t
+                                 'keymap geex-fontify-link-local-map
                                  ;; doesn't seem to help
-				 ;; 'font-lock-multiline t
-				 'link-text link-text
-				 'link-file link-file))
+                                 ;; 'font-lock-multiline t
+                                 'link-text link-text
+                                 'link-file link-file))
       (add-text-properties (- end 1)
                            end
-			   (list 'face 'geex-link-face
-				 'geex-link t
-				 ;; 'font-lock-multiline t
+                           (list 'face 'geex-link-face
+                                 'geex-link t
+                                 ;; 'font-lock-multiline t
                                  )))))
 
 (defun geex-unhighlight-buffer ()
@@ -174,18 +166,18 @@ active in the current buffer.")
         (modified-p (buffer-modified-p))
         deactivate-mark)
     (unwind-protect
-	(if (eq major-mode 'muse-mode)
-	    ;; remove only geex-specific properties
-	    (remove-text-properties
-	     begin end '(geex-link nil link-file nil link-text nil
-			      link-url nil))
-	  ;; remove all the props
-	  (remove-text-properties
-	   begin end '(face nil font-lock-multiline nil end-glyph nil
-			    invisible nil intangible nil display nil
-			    mouse-face nil keymap nil help-echo nil
-			    geex-link nil link-file nil link-text nil
-			    link-url nil read-only nil)))
+        (if (eq major-mode 'muse-mode)
+            ;; remove only geex-specific properties
+            (remove-text-properties
+             begin end '(geex-link nil link-file nil link-text nil
+                              link-url nil))
+          ;; remove all the props
+          (remove-text-properties
+           begin end '(face nil font-lock-multiline nil end-glyph nil
+                            invisible nil intangible nil display nil
+                            mouse-face nil keymap nil help-echo nil
+                            geex-link nil link-file nil link-text nil
+                            link-url nil read-only nil)))
       (set-buffer-modified-p modified-p))))
 
 (defface geex-link-face
@@ -271,26 +263,26 @@ active in the current buffer.")
 ;; <olink targetdoc="alias" targetptr="id">Jubba Doc</olink>
 (defun geex-fontify-element-olink (beg end attrs)
   (let ((beg-element-start beg)
-	(beg-element-finish nil)
-	(end-element-start nil)
-	(end-element-finish end)
-	(targetdoc (cdr (assoc "targetdoc" attrs)))
-	(targetptr (cdr (assoc "targetptr" attrs)))
-	(link-text nil)
-	(link-file nil)
-	(current-font-face 'geex-link-face))
+        (beg-element-finish nil)
+        (end-element-start nil)
+        (end-element-finish end)
+        (targetdoc (cdr (assoc "targetdoc" attrs)))
+        (targetptr (cdr (assoc "targetptr" attrs)))
+        (link-text nil)
+        (link-file nil)
+        (current-font-face 'geex-link-face))
     ;; set the missing parts of the element locations
     (save-match-data
       (goto-char beg)
       (setq beg-element-finish (and (looking-at "<[^>]+>")
-				 (match-end 0)))
+                                 (match-end 0)))
       (goto-char end)
       (setq end-element-start (and (geex-looking-back "</[^>]+>")
-				   (match-beginning 0))))
+                                   (match-beginning 0))))
     ;; see if it matches an alias
     (if (geex-sqlalchemy-exist-nugget-a targetdoc)
-	;; is an alias, so set the link-file from the alias
-	(setq link-file (geex-sqlalchemy-get-filename-a targetdoc))
+        ;; is an alias, so set the link-file from the alias
+        (setq link-file (geex-sqlalchemy-get-filename-a targetdoc))
       ;; process as a file
       (setq link-file targetdoc))
     ;; make sure file exists, if not, set link-file to nil
@@ -300,96 +292,96 @@ active in the current buffer.")
       (setq current-font-face 'geex-link-broken-face))
     ;; set the link-text
     (setq link-text (buffer-substring-no-properties
-		     beg-element-finish
-		     end-element-start))
+                     beg-element-finish
+                     end-element-start))
     ;; set the link-text properties
     (add-text-properties beg
-			 end
-			 (list 'face current-font-face
-			       'geex-link t
-			       'keymap geex-fontify-link-local-map
-			       ;;'font-lock-multiline t
-			       'link-text link-text
-			       'link-file link-file))
+                         end
+                         (list 'face current-font-face
+                               'geex-link t
+                               'keymap geex-fontify-link-local-map
+                               ;;'font-lock-multiline t
+                               'link-text link-text
+                               'link-file link-file))
     ;; hide the element part
     (add-text-properties beg-element-start
-			 beg-element-finish
-			 (list 'invisible t))
+                         beg-element-finish
+                         (list 'invisible t))
     (add-text-properties end-element-start
-			 end-element-finish
-			 (list 'invisible t))))
+                         end-element-finish
+                         (list 'invisible t))))
 
 ;; <ulink url="http://jubba.html>My jubba site</ulink>
 (defun geex-fontify-element-ulink (beg end attrs)
   (let ((beg-element-start beg)
-	(beg-element-finish nil)
-	(end-element-start nil)
-	(end-element-finish end)
-	(link-url (cdr (assoc "url" attrs)))
-	(link-text nil)
-	(link-file nil)
-	(current-font-face 'geex-link-face))
+        (beg-element-finish nil)
+        (end-element-start nil)
+        (end-element-finish end)
+        (link-url (cdr (assoc "url" attrs)))
+        (link-text nil)
+        (link-file nil)
+        (current-font-face 'geex-link-face))
     ;; set the missing parts of the element locations
     (save-match-data
       (goto-char beg)
       (setq beg-element-finish (and (looking-at "<[^>]+>")
-				 (match-end 0)))
+                                 (match-end 0)))
       (goto-char end)
       (setq end-element-start (and (geex-looking-back "</[^>]+>")
-				   (match-beginning 0))))
+                                   (match-beginning 0))))
     ;; set the link-text
     (setq link-text (buffer-substring-no-properties
-		     beg-element-finish
-		     end-element-start))
+                     beg-element-finish
+                     end-element-start))
     ;; set the link-text properties
     (add-text-properties beg
-			 end
-			 (list 'face current-font-face
-			       'geex-link t
-			       'keymap geex-fontify-link-local-map
-			       ;;'font-lock-multiline t
-			       'link-text link-text
-			       'link-url link-url))
+                         end
+                         (list 'face current-font-face
+                               'geex-link t
+                               'keymap geex-fontify-link-local-map
+                               ;;'font-lock-multiline t
+                               'link-text link-text
+                               'link-url link-url))
     ;; hide the element part
     (add-text-properties beg-element-start
-			 beg-element-finish
-			 (list 'invisible t))
+                         beg-element-finish
+                         (list 'invisible t))
     (add-text-properties end-element-start
-			 end-element-finish
-			 (list 'invisible t))))
+                         end-element-finish
+                         (list 'invisible t))))
 
 (defvar geex-fontify-sect-number-format "%d) ")
 (defun geex-fontify-element-sect (beg end attrs)
   (let ((beg-element-start beg)
-	(beg-element-finish nil)
-	(end-element-start nil)
-	(end-element-finish end)
-	(sect-level (cdr (assoc "level" attrs)))
-	(sect-text nil)
-	(sect-face nil))
+        (beg-element-finish nil)
+        (end-element-start nil)
+        (end-element-finish end)
+        (sect-level (cdr (assoc "level" attrs)))
+        (sect-text nil)
+        (sect-face nil))
     ;; set the missing parts of the element locations
     (save-match-data
       (goto-char beg)
       (setq beg-element-finish (and (looking-at "<[^>]+>")
-				 (match-end 0)))
+                                 (match-end 0)))
       (goto-char end)
       (setq end-element-start (and (geex-looking-back "</[^>]+>")
-				   (match-beginning 0))))
+                                   (match-beginning 0))))
     ;; set the sect-text
     (setq sect-text (buffer-substring-no-properties
-		     beg-element-finish
-		     end-element-start))
+                     beg-element-finish
+                     end-element-start))
     ;; determine the proper face
     (when (and (> (string-to-int sect-level) 0)
-	       (< (string-to-int sect-level) geex-fontify-max-sect))
+               (< (string-to-int sect-level) geex-fontify-max-sect))
       ;; set the face
       (setq sect-face (intern (concat "geex-sect-" sect-level "-face"))))
     ;; set the sect-text properties
     (add-text-properties beg
-			 end
-			 (list 'face sect-face
-			       'keymap geex-fontify-sect-local-map
-			       'font-lock-multiline t))
+                         end
+                         (list 'face sect-face
+                               'keymap geex-fontify-sect-local-map
+                               'font-lock-multiline t))
     ;; hide the element part
     ;; Trying out adding numbering
     ;; It breaks the use of xml-parse
@@ -400,19 +392,19 @@ active in the current buffer.")
     ;;               (string-to-int sect-level))
     ;;             'intangible t))
     (add-text-properties beg-element-start
-			 beg-element-finish
-			 (list ;'face 'geex-deemphasize-face
-			       'invisible t
-			       'intangible t
-			       ;'read-only t
-			       'rear-nonsticky t))
+                         beg-element-finish
+                         (list ;'face 'geex-deemphasize-face
+                               'invisible t
+                               'intangible t
+                               ;'read-only t
+                               'rear-nonsticky t))
     (add-text-properties end-element-start
-			 end-element-finish
-			 (list ;'face 'geex-deemphasize-face
-			       'invisible t
-			       'intangible t
-			       ;'read-only t
-			       'rear-nonsticky t))))
+                         end-element-finish
+                         (list ;'face 'geex-deemphasize-face
+                               'invisible t
+                               'intangible t
+                               ;'read-only t
+                               'rear-nonsticky t))))
 
 (defun geex-fontify-insert-sect-element (level)
   "Insert a section element at point."
@@ -454,7 +446,7 @@ active in the current buffer.")
     (let ((beg-file nil)
           (end-file nil)
           (filename nil)
-	  (text-tween-elements nil))
+          (text-tween-elements nil))
       (save-match-data
         (goto-char beg)
         (setq beg-file (and (looking-at "<[^>]+>")
@@ -470,9 +462,9 @@ active in the current buffer.")
       ;; functions
       (setq filename (geex-remove-extension text-tween-elements))
       (when (not (file-exists-p filename))
-	;; tell them that the file does not exist
-	(add-text-properties beg-file
-			     end-file
-			     (list 'face 'geex-link-broken-face)))))
+        ;; tell them that the file does not exist
+        (add-text-properties beg-file
+                             end-file
+                             (list 'face 'geex-link-broken-face)))))
 
 (provide 'geex-fontify)
