@@ -173,7 +173,7 @@
                  nil))) ;; nosort
 
 ;; re-evals geex-meta.el, along with a few other files, to
-;; give Freex a kick-start in case pymacs crashes
+;; give Geex a kick-start in case pymacs crashes
 (defun geex-restart ()
   (interactive)
   (load "geex.el")

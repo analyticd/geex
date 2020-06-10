@@ -931,7 +931,7 @@ highest overlay at point."
     (setq query
           (completing-read
            ;; if they fed in a prompt, use that, else default
-           (if prompt prompt "Freex alias: ") ;; prompt
+           (if prompt prompt "Geex alias: ") ;; prompt
 
            ;; programmatically complete, whittling down by
            ;; tag-parents

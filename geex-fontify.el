@@ -1,4 +1,4 @@
-;;; geex-fontify.el --- Fontification for Freex
+;;; geex-fontify.el --- Fontification for Geex
 ;;
 ;; Copyright (C) 2007 Per B. Sederberg, Greg Detre
 ;;
@@ -6,10 +6,10 @@
 ;; Keywords: hypermedia
 ;; Date:
 ;;
-;; This file is part of Emacs Freex.  It is not part of GNU
+;; This file is part of Emacs Geex.  It is not part of GNU
 ;; Emacs.
 ;;
-;; Emacs Freex is free software; you can redistribute it
+;; Emacs Geex is free software; you can redistribute it
 ;; and/or modify it under the terms of the GNU General
 ;; Public License as published by the Free Software
 ;; Foundation; either version 2, or (at your option) any
