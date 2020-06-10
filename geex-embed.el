@@ -92,12 +92,12 @@ etc.")
     ;;
     ;; it turns out that we don't need this. or at least, we
     ;; don't think we do, but it may be that this is here to
-    ;; fix a bug... :(
-    ;;     (when (and new-end
-    ;;         (> new-end beg))
-    ;;       ;; fontify that region
-    ;;       ;; (geex-fontify-region beg new-end verbose)))
-    ))
+    ;; fix a bug... :( Update @analyticd: This makes geex
+    ;; fontification work.
+    (when (and new-end
+               (> new-end beg))
+      ;; fontify that region
+      (geex-fontify-region beg new-end verbose))))
 
 (defcustom geex-embed-elements
   '(("file" t t nil geex-embed-file-element))
