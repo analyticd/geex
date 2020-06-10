@@ -372,8 +372,8 @@ active in the current buffer.")
                      beg-element-finish
                      end-element-start))
     ;; determine the proper face
-    (when (and (> (string-to-int sect-level) 0)
-               (< (string-to-int sect-level) geex-fontify-max-sect))
+    (when (and (> (string-to-number sect-level) 0)
+               (< (string-to-number sect-level) geex-fontify-max-sect))
       ;; set the face
       (setq sect-face (intern (concat "geex-sect-" sect-level "-face"))))
     ;; set the sect-text properties
@@ -389,7 +389,7 @@ active in the current buffer.")
     ;;       beg-element-finish
     ;;       (list 'display
     ;;             (format geex-fontify-sect-number-format
-    ;;               (string-to-int sect-level))
+    ;;               (string-to-number sect-level))
     ;;             'intangible t))
     (add-text-properties beg-element-start
                          beg-element-finish
