@@ -107,7 +107,6 @@ active in the current buffer.")
   (let ((matches (geex-sqlalchemy-get-all-matching-implicit-links
                   (buffer-substring-no-properties beg end)))
         (modified-p (buffer-modified-p)))
-    (message "geex: matches: %s" matches)
     (unwind-protect
         (save-excursion
           (save-restriction

@@ -85,9 +85,9 @@ etc.")
   ;; process the tags in the region
   (let* ((geex-embed-embedding-p t)
          (new-end (geex-xml-process-region beg
-                                            end
-                                            geex-embed-regexp-list
-                                            verbose)))
+                                           end
+                                           geex-embed-regexp-list
+                                           verbose)))
     ;; see if we matched anything and should use the new end
     ;;
     ;; it turns out that we don't need this. or at least, we

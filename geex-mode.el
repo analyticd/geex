@@ -50,14 +50,14 @@
     (if (not filename)
         ;; can't start geex unless there is a buffer file name
         (progn
-    (turn-off-geex-mode)
+          (turn-off-geex-mode)
           (message "You can not enter geex mode if the buffer has no filename."))
       ;; is in the proper geex directory
       (if (not (equal (file-name-directory filename) geex-mode-dir))
           ;; we have a filename, but it is in the wrong directory
           ;; don't go into geex mode
           (progn
-      (turn-off-geex-mode)
+            (turn-off-geex-mode)
             (message "You can not enter geex mode when not in the proper directory."))
         ;; we are either visiting a valid geex file or a scratch buffer
         (progn
@@ -111,9 +111,9 @@
           ;; build the regex if this is the first time geex-mode has run
           (if (boundp 'geex-mode-has-run-already)
               nil ; do nothing
-              (progn
-                (setq geex-mode-has-run-already t)
-                (geex-fontify-update-implicit-link-regexp)))
+            (progn
+              (setq geex-mode-has-run-already t)
+              (geex-fontify-update-implicit-link-regexp)))
 
           (cond ((eq major-mode 'muse-mode)
                  ;; add our fontification hook to the muse-colors-region-hook
