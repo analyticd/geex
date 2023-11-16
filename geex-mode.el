@@ -125,11 +125,11 @@
                  (progn
                    ;; NOTE Commented out code doesn't seem to effect outcome.
                    ;; Still works/fontifies fine.
-                   ;; (set (make-local-variable 'font-lock-defaults)
-                   ;; `(nil t nil nil beginning-of-line
-                   ;; (font-lock-fontify-region-function . geex-fontify-region)
-                   ;; (font-lock-unfontify-region-function
-                   ;;  . geex-unhighlight-region)))
+                   (set (make-local-variable 'font-lock-defaults)
+                   `(nil t nil nil beginning-of-line
+                   (font-lock-fontify-region-function . geex-fontify-region)
+                   (font-lock-unfontify-region-function
+                    . geex-unhighlight-region)))
                    (set (make-local-variable
                          'font-lock-fontify-region-function)
                         'geex-fontify-region)

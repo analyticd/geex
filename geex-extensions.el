@@ -88,7 +88,7 @@ non-geex file to embed."
   :group 'geex-embed)
 
 (defcustom geex-non-geex-embeddable-file-types
-      '("tex" "latex" "kotl" "org" "txt" "csv" "cpp" "c" "C" "hs" "fs" "mm")
+      '("tex" "latex" "kotl" "org" "pdf" "txt" "csv" "cpp" "c" "C" "hs" "fs" "mm")
   "Non-geex file types that can be transcluded. User can add
   more. Some file types don't transclude/embed properly, e.g.,
   PDF."
@@ -175,6 +175,13 @@ should get automatically fontified."
     (add-text-properties end-element-start
                          end-element-finish
                          (list 'invisible t))))
+
+(after 'org
+  (defun geex-fontify-org-bracket-links ()
+    "Fontify org bracket links."
+    (goto-char (point-min))
+    (save-excursion
+      (while (org-activate-bracket-links (point-max))))))
 
 (eval-after-load 'evil
   (fset 'geex-convert-org-links-to-olinks

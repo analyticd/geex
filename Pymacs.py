@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/local/bin/python3.8
 # -*- coding: utf-8 -*-
 # Copyright © 2001, 2002, 2003, 2012 Progiciels Bourbeau-Pinard inc.
 # François Pinard <pinard@iro.umontreal.ca>, 2001.
@@ -31,38 +31,39 @@ See the Pymacs documentation (check `README') for more information.
 
 # Identification of version.
 
-package = 'Pymacs'
-version = '0.25'
+package = "Pymacs"
+version = "0.26"
 
 import os
 import sys
 
 
+from collections.abc import Callable
 
 
+def callable(value):
+    return isinstance(value, Callable)
 
 
-
-
-
-
-__metaclass__ = type
+basestring = str
+from imp import reload
 
 
 def fixup_icanon():
     # Otherwise sys.stdin.read hangs for large inputs in emacs 24.
     # See comment in emacs source code sysdep.c.
     import termios
+
     a = termios.tcgetattr(1)
     a[3] &= ~termios.ICANON
     termios.tcsetattr(1, termios.TCSANOW, a)
+
 
 try:
     import signal
 except ImportError:
     # Jython does not have signal.
     signal = None
-
 ## Python services for Emacs applications.
 
 
@@ -83,16 +84,16 @@ Arguments are added to the search path for Python modules.
 """
 
         # Decode options.
-        arguments = (os.environ.get('PYMACS_OPTIONS', '').split()
-                     + list(arguments))
+        arguments = os.environ.get("PYMACS_OPTIONS", "").split() + list(arguments)
         import getopt
-        options, arguments = getopt.getopt(arguments, 'fd:s:')
+
+        options, arguments = getopt.getopt(arguments, "fd:s:")
         for option, value in options:
-            if option == '-d':
+            if option == "-d":
                 self.debug_file = value
-            elif option == '-s':
+            elif option == "-s":
                 self.signal_file = value
-            elif option == '-f':
+            elif option == "-f":
                 try:
                     fixup_icanon()
                 except:
@@ -108,57 +109,41 @@ Arguments are added to the search path for Python modules.
         if signal is not None:
 
             # See the comment for IO_ERRORS_WITH_SIGNALS in ppppconfig.py.
-            self.original_handler = signal.signal(
-                signal.SIGINT, self.interrupt_handler)
-
-
-
-
-
-
-
-
-
+            self.original_handler = signal.signal(signal.SIGINT, self.interrupt_handler)
 
         self.inhibit_quit = True
 
-
-        # Re-open standard input and output in binary mode.
-        sys.stdin = os.fdopen(sys.stdin.fileno(), 'rb')
-        sys.stdout = os.fdopen(sys.stdout.fileno(), 'wb')
-
         # Start protocol and services.
-        lisp._protocol.send('version', '"%s"' % version)
+        lisp._protocol.send("version", '"%s"' % version)
         lisp._protocol.loop()
 
     def generic_handler(self, number, frame):
-
         if self.signal_file:
-            handle = open(self.signal_file, 'a')
-            handle.write('%d\n' % number)
+            handle = open(self.signal_file, "a")
+            handle.write("%d\n" % number)
             handle.close()
 
     def interrupt_handler(self, number, frame):
         if self.signal_file:
-            star = (' *', '')[self.inhibit_quit]
-            handle = open(self.signal_file, 'a')
-            handle.write('%d%s\n' % (number, star))
+            star = (" *", "")[self.inhibit_quit]
+            handle = open(self.signal_file, "a")
+            handle.write("%d%s\n" % (number, star))
             handle.close()
         if not self.inhibit_quit:
             self.original_handler(number, frame)
+
 
 run = Main()
 main = run.main
 
 
-
-
-
 class error(Exception):
     pass
 
+
 class ProtocolError(error):
     pass
+
 
 class ZombieError(error):
     pass
@@ -177,75 +162,6 @@ class Protocol:
     def __init__(self):
         self.freed = []
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     def loop(self):
         # The server loop repeatedly receives a request from Emacs and
         # returns a response, which is either the value of the received
@@ -262,146 +178,100 @@ class Protocol:
         while not done:
             try:
                 action, text = self.receive()
-                if action == 'eval':
-                    action = 'return'
+                if action == "eval":
+                    action = "return"
                     try:
                         run.inhibit_quit = False
                         value = eval(text)
                     finally:
                         run.inhibit_quit = True
-                elif action == 'exec':
-                    action = 'return'
+                elif action == "exec":
+                    action = "return"
                     value = None
                     try:
                         run.inhibit_quit = False
                         exec(text)
                     finally:
                         run.inhibit_quit = True
-                elif action == 'return':
+                elif action == "return":
                     done = True
                     try:
                         run.inhibit_quit = False
                         value = eval(text)
                     finally:
                         run.inhibit_quit = True
-                elif action == 'raise':
-                    action = 'raise'
-                    value = 'Emacs: ' + text
+                elif action == "raise":
+                    action = "raise"
+                    value = "Emacs: " + text
                 else:
-
-
-
                     raise ProtocolError("Unknown action %r" % action)
             except KeyboardInterrupt:
                 if done:
                     raise
-                action = 'raise'
-                value = '*Interrupted*'
-            except(ProtocolError, exception):
+                action = "raise"
+                value = "*Interrupted*"
+            except ProtocolError as exception:
                 sys.exit("Protocol error: %s\n" % exception)
             except:
                 import traceback
-                action = 'raise'
-                if lisp.debug_on_error.value() is None:
-                    value = traceback.format_exception_only(
-                        sys.exc_type, sys.exc_value)
-                    value = ''.join(value).rstrip()
-                else:
+
+                action = "raise"
+                if lisp.debug_on_error.value():
                     value = traceback.format_exc()
+                else:
+                    exc_info = sys.exc_info()
+                    value = traceback.format_exception_only(exc_info[0], exc_info[1])
+                    value = "".join(value).rstrip()
+                value = "Caught error: %s,%s, %s " % (action, text, value)
             if not done:
                 fragments = []
                 print_lisp(value, fragments.append, True)
-                self.send(action, ''.join(fragments))
+                self.send(action, "".join(fragments))
         return value
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     def receive(self):
         # Receive a Python expression from Emacs, return (ACTION, TEXT).
-        prefix = sys.stdin.read(3)
-        if not prefix or prefix[0] != '>':
-
-
-
+        prefix = sys.stdin.buffer.read(3)
+        if not prefix or prefix[0] != ord(b">"):
             raise ProtocolError("`>' expected.")
-        while prefix[-1] != '\t':
-            character = sys.stdin.read(1)
+        while prefix[-1] != ord(b"\t"):
+            character = sys.stdin.buffer.read(1)
             if not character:
-
-
-
                 raise ProtocolError("Empty stdin read.")
             prefix += character
-        text = sys.stdin.read(int(prefix[1:-1]))
+        data = sys.stdin.buffer.read(int(prefix[1:-1]))
+        try:
+            text = data.decode("UTF-8")
+        except UnicodeDecodeError:
+            # assert False, ('***', data)
+            text = data.decode("ISO-8859-1")
         if run.debug_file is not None:
-            handle = open(run.debug_file, 'a')
-            handle.write(prefix + text)
+            handle = open(run.debug_file, "a")
+            handle.write(prefix.decode("ASCII") + text)
             handle.close()
         return text.split(None, 1)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     def send(self, action, text):
         # Send ACTION and its TEXT argument to Emacs.
         if self.freed:
             # All delayed Lisp cleanup is piggied back on the transmission.
-            text = ('(free (%s) %s %s)\n'
-                    % (' '.join(map(str, self.freed)), action, text))
+            text = "(free (%s) %s %s)\n" % (
+                " ".join(map(str, self.freed)),
+                action,
+                text,
+            )
             self.freed = []
         else:
-            text = '(%s %s)\n' % (action, text)
-        prefix = '<%d\t' % len(text)
+            text = "(%s %s)\n" % (action, text)
+        data = text.encode("UTF-8")
+        prefix = "<%d\t" % len(data)
         if run.debug_file is not None:
-            handle = open(run.debug_file, 'a')
+            handle = open(run.debug_file, "a")
             handle.write(prefix + text)
             handle.close()
-        sys.stdout.write(prefix + text)
-        sys.stdout.flush()
+        sys.stdout.buffer.write(prefix.encode("ASCII"))
+        sys.stdout.buffer.write(data)
+        sys.stdout.buffer.flush()
 
 
 def pymacs_load_helper(file_without_extension, prefix, noerror=None):
@@ -416,9 +286,9 @@ def pymacs_load_helper(file_without_extension, prefix, noerror=None):
     # is None, it then defaults to the base name of MODULE with underlines
     # turned to dashes, followed by a dash.
     directory, module_name = os.path.split(file_without_extension)
-    module_components = module_name.split('.')
+    module_components = module_name.split(".")
     if prefix is None:
-        prefix = module_components[-1].replace('_', '-') + '-'
+        prefix = module_components[-1].replace("_", "-") + "-"
     try:
         module = sys.modules.get(module_name)
         if module:
@@ -440,17 +310,17 @@ def pymacs_load_helper(file_without_extension, prefix, noerror=None):
             return None
         else:
             raise
-    load_hook = module.__dict__.get('pymacs_load_hook')
+    load_hook = module.__dict__.get("pymacs_load_hook")
     if load_hook:
         load_hook()
-    interactions = module.__dict__.get('interactions', {})
+    interactions = module.__dict__.get("interactions", {})
     if not isinstance(interactions, dict):
         interactions = {}
     arguments = []
     for name, value in module.__dict__.items():
         if callable(value) and value is not lisp:
             arguments.append(allocate_python(value))
-            arguments.append(lisp[prefix + name.replace('_', '-')])
+            arguments.append(lisp[prefix + name.replace("_", "-")])
             try:
                 interaction = value.interaction
             except AttributeError:
@@ -460,16 +330,16 @@ def pymacs_load_helper(file_without_extension, prefix, noerror=None):
             else:
                 arguments.append(interaction)
     if arguments:
-        return [lisp.progn,
-                [lisp.pymacs_defuns, [lisp.quote, arguments]],
-                module]
+        return [lisp.progn, [lisp.pymacs_defuns, [lisp.quote, arguments]], module]
     return [lisp.quote, module]
 
 
 def doc_string(function):
     import inspect
+
     return inspect.getdoc(function)
-
+
+
 ## Garbage collection matters.
 
 # Many Python types do not have direct Lisp equivalents, and may not be
@@ -521,16 +391,14 @@ def zombie(*arguments):
     diagnostic = "Object vanished when the Pymacs helper was killed"
     if lisp.pymacs_dreadful_zombies.value():
 
-
-
         raise ZombieError(diagnostic)
     lisp.message(diagnostic)
-
+
+
 ## Emacs services for Python applications.
 
 
 class Let:
-
     def __init__(self, **keywords):
         # The stack holds (METHOD, DATA) pairs, where METHOD is the expected
         # unbound pop_* method, and DATA holds information to be restored.
@@ -543,12 +411,7 @@ class Let:
     def __del__(self):
         self.pops()
 
-
-
-
-
-
-    def __nonzero__(self):
+    def __bool__(self):
         # So stylistic `if let:' executes faster.
         return True
 
@@ -571,9 +434,12 @@ class Let:
             setattr(lisp, name, value)
 
     def push_excursion(self):
-        self.stack.append((Let.pop_excursion, (lisp.current_buffer(),
-                                               lisp.point_marker(),
-                                               lisp.mark_marker())))
+        self.stack.append(
+            (
+                Let.pop_excursion,
+                (lisp.current_buffer(), lisp.point_marker(), lisp.mark_marker()),
+            )
+        )
         return self
 
     def pop_excursion(self):
@@ -596,8 +462,9 @@ class Let:
         lisp.set_match_data(data)
 
     def push_restriction(self):
-        self.stack.append((Let.pop_restriction, (lisp.point_min_marker(),
-                                                 lisp.point_max_marker())))
+        self.stack.append(
+            (Let.pop_restriction, (lisp.point_min_marker(), lisp.point_max_marker()))
+        )
         return self
 
     def pop_restriction(self):
@@ -618,8 +485,9 @@ class Let:
         lisp.select_window(data)
 
     def push_window_excursion(self):
-        self.stack.append((Let.pop_window_excursion,
-                           lisp.current_window_configuration()))
+        self.stack.append(
+            (Let.pop_window_excursion, lisp.current_window_configuration())
+        )
         return self
 
     def pop_window_excursion(self):
@@ -629,15 +497,14 @@ class Let:
 
 
 class Symbol:
-
     def __init__(self, text):
         self.text = text
 
     def __repr__(self):
-        return 'lisp[%s]' % repr(self.text)
+        return "lisp[%s]" % repr(self.text)
 
     def __str__(self):
-        return '\'' + self.text
+        return "'" + self.text
 
     def value(self):
         return lisp._eval(self.text)
@@ -647,28 +514,27 @@ class Symbol:
 
     def set(self, value):
         if value is None:
-            lisp._eval('(setq %s nil)' % self.text)
+            lisp._eval("(setq %s nil)" % self.text)
         else:
             fragments = []
             write = fragments.append
-            write('(progn (setq %s ' % self.text)
+            write("(progn (setq %s " % self.text)
             print_lisp(value, write, True)
-            write(') nil)')
-            lisp._eval(''.join(fragments))
+            write(") nil)")
+            lisp._eval("".join(fragments))
 
     def __call__(self, *arguments):
         fragments = []
         write = fragments.append
-        write('(%s' % self.text)
+        write("(%s" % self.text)
         for argument in arguments:
-            write(' ')
+            write(" ")
             print_lisp(argument, write, True)
-        write(')')
-        return lisp._eval(''.join(fragments))
+        write(")")
+        return lisp._eval("".join(fragments))
 
 
 class Lisp:
-
     def __init__(self, index):
         self.index = index
 
@@ -676,10 +542,10 @@ class Lisp:
         lisp._protocol.freed.append(self.index)
 
     def __repr__(self):
-        return ('lisp(%s)' % repr(lisp('(prin1-to-string %s)' % self)))
+        return "lisp(%s)" % repr(lisp("(prin1-to-string %s)" % self))
 
     def __str__(self):
-        return '(aref pymacs-lisp %d)' % self.index
+        return "(aref pymacs-lisp %d)" % self.index
 
     def value(self):
         return self
@@ -691,35 +557,32 @@ class Lisp:
 class Buffer(Lisp):
     pass
 
-    #def write(text):
+    # def write(text):
     #    # So you could do things like
     #    # print >>lisp.current_buffer(), "Hello World"
     #    lisp.insert(text, self)
 
-    #def point(self):
+    # def point(self):
     #    return lisp.point(self)
 
 
 class List(Lisp):
-
     def __call__(self, *arguments):
         fragments = []
         write = fragments.append
-        write('(%s' % self)
+        write("(%s" % self)
         for argument in arguments:
-            write(' ')
+            write(" ")
             print_lisp(argument, write, True)
-        write(')')
-        return lisp._eval(''.join(fragments))
+        write(")")
+        return lisp._eval("".join(fragments))
 
     def __len__(self):
-        return lisp._eval('(length %s)' % self)
+        return lisp._eval("(length %s)" % self)
 
     def __getitem__(self, key):
-        value = lisp._eval('(nth %d %s)' % (key, self))
+        value = lisp._eval("(nth %d %s)" % (key, self))
         if value is None and key >= len(self):
-
-
 
             raise IndexError(key)
         return value
@@ -727,82 +590,75 @@ class List(Lisp):
     def __setitem__(self, key, value):
         fragments = []
         write = fragments.append
-        write('(setcar (nthcdr %d %s) ' % (key, self))
+        write("(setcar (nthcdr %d %s) " % (key, self))
         print_lisp(value, write, True)
-        write(')')
-        lisp._eval(''.join(fragments))
+        write(")")
+        lisp._eval("".join(fragments))
 
 
 class Table(Lisp):
-
     def __getitem__(self, key):
         fragments = []
         write = fragments.append
-        write('(gethash ')
+        write("(gethash ")
         print_lisp(key, write, True)
-        write(' %s)' % self)
-        return lisp._eval(''.join(fragments))
+        write(" %s)" % self)
+        return lisp._eval("".join(fragments))
 
     def __setitem__(self, key, value):
         fragments = []
         write = fragments.append
-        write('(puthash ')
+        write("(puthash ")
         print_lisp(key, write, True)
-        write(' ')
+        write(" ")
         print_lisp(value, write, True)
-        write(' %s)' % self)
-        lisp._eval(''.join(fragments))
+        write(" %s)" % self)
+        lisp._eval("".join(fragments))
 
 
 class Vector(Lisp):
-
     def __len__(self):
-        return lisp._eval('(length %s)' % self)
+        return lisp._eval("(length %s)" % self)
 
     def __getitem__(self, key):
-        return lisp._eval('(aref %s %d)' % (self, key))
+        return lisp._eval("(aref %s %d)" % (self, key))
 
     def __setitem__(self, key, value):
         fragments = []
         write = fragments.append
-        write('(aset %s %d ' % (self, key))
+        write("(aset %s %d " % (self, key))
         print_lisp(value, write, True)
-        write(')')
-        lisp._eval(''.join(fragments))
+        write(")")
+        lisp._eval("".join(fragments))
 
 
 class Lisp_Interface:
-
     def __init__(self):
-        self.__dict__['_cache'] = {'nil': None}
-        self.__dict__['_protocol'] = Protocol()
+        self.__dict__["_cache"] = {"nil": None}
+        self.__dict__["_protocol"] = Protocol()
 
     def __call__(self, text):
-        return self._eval('(progn %s)' % text)
+        return self._eval("(progn %s)" % text)
 
     def _eval(self, text):
-        self._protocol.send('eval', text)
+        self._protocol.send("eval", text)
         return self._protocol.loop()
 
     def _expand(self, text):
-        self._protocol.send('expand', text)
+        self._protocol.send("expand", text)
         return self._protocol.loop()
 
     def __getattr__(self, name):
-        if name[0] == '_':
-
-
+        if name[0] == "_":
 
             raise AttributeError(name)
-        return self[name.replace('_', '-')]
+        return self[name.replace("_", "-")]
 
     def __setattr__(self, name, value):
-        if name[0] == '_':
-
-
+        if name[0] == "_":
 
             raise AttributeError(name)
-        self[name.replace('_', '-')] = value
+        self[name.replace("_", "-")] = value
 
     def __getitem__(self, name):
         try:
@@ -818,143 +674,78 @@ class Lisp_Interface:
             symbol = self._cache[name] = Symbol(name)
         symbol.set(value)
 
+
 lisp = Lisp_Interface()
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 print_lisp_quoted_specials = {
-    '"': '\\"', '\\': '\\\\', '\b': '\\b', '\f': '\\f',
-    '\n': '\\n', '\r': '\\r', '\t': '\\t'}
+    ord('"'): '\\"',
+    ord("\\"): "\\\\",
+    ord("\b"): "\\b",
+    ord("\f"): "\\f",
+    ord("\n"): "\\n",
+    ord("\r"): "\\r",
+    ord("\t"): "\\t",
+}
+
 
 def print_lisp(value, write, quoted):
     if value is None:
-        write('nil')
+        write("nil")
     elif isinstance(bool, type) and isinstance(value, bool):
-        write(('nil', 't')[value])
+        write(("nil", "t")[value])
     elif isinstance(value, int):
         write(repr(value))
     elif isinstance(value, float):
         write(repr(value))
-    elif isinstance(value, basestring):
-        multibyte = False
-        if isinstance(value, unicode):
-            try:
-                value = value.encode('ASCII')
-            except UnicodeError:
-                value = value.encode('UTF-8')
-                multibyte = True
-        if multibyte:
-            write('(decode-coding-string ')
-        write('"')
-        for character in value:
-            special = print_lisp_quoted_specials.get(character)
-            if special is not None:
-                write(special)
-            elif 32 <= ord(character) < 127:
-                write(character)
-            else:
-                write('\\%.3o' % ord(character))
-        write('"')
-        if multibyte:
-            write(' \'utf-8)')
+    elif isinstance(value, str):
+        try:
+            value.encode("ASCII")
+        except UnicodeError:
+            write('(decode-coding-string "')
+            for byte in value.encode("UTF-8"):
+                special = print_lisp_quoted_specials.get(byte)
+                if special is not None:
+                    write(special)
+                elif 32 <= byte < 127:
+                    write(chr(byte))
+                else:
+                    write("\\%.3o" % byte)
+            write("\" 'utf-8)")
+        else:
+            write('"')
+            for character in value:
+                special = print_lisp_quoted_specials.get(ord(character))
+                if special is not None:
+                    write(special)
+                elif 32 <= ord(character) < 127:
+                    write(character)
+                else:
+                    write("\\%.3o" % ord(character))
+            write('"')
     elif isinstance(value, list):
         if quoted:
             write("'")
         if len(value) == 0:
-            write('nil')
+            write("nil")
         elif len(value) == 2 and value[0] == lisp.quote:
             write("'")
             print_lisp(value[1], write, False)
         else:
-            write('(')
+            write("(")
             print_lisp(value[0], write, False)
             for sub_value in value[1:]:
-                write(' ')
+                write(" ")
                 print_lisp(sub_value, write, False)
-            write(')')
+            write(")")
     elif isinstance(value, tuple):
-        write('[')
+        write("[")
         if len(value) > 0:
             print_lisp(value[0], write, False)
             for sub_value in value[1:]:
-                write(' ')
+                write(" ")
                 print_lisp(sub_value, write, False)
-        write(']')
+        write("]")
     elif isinstance(value, Lisp):
         write(str(value))
     elif isinstance(value, Symbol):
@@ -962,9 +753,10 @@ def print_lisp(value, write, quoted):
             write("'")
         write(value.text)
     elif callable(value):
-        write('(pymacs-defun %d nil)' % allocate_python(value))
+        write("(pymacs-defun %d nil)" % allocate_python(value))
     else:
-        write('(pymacs-python %d)' % allocate_python(value))
+        write("(pymacs-python %d)" % allocate_python(value))
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main(*sys.argv[1:])

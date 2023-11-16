@@ -1004,9 +1004,9 @@ nuggets."
         (error "Can't open an empty alias"))
       (setq filename (geex-sqlalchemy-get-filename-a
                       (geex-meta-remove-parents-from-alias-chosen chosen)))
-        ;; if the filename doesn't exist in the db, then we're
-        ;; going to have to create a new file called
-        ;; CHOSEN.geex
+      ;; if the filename doesn't exist in the db, then we're
+      ;; going to have to create a new file called
+      ;; CHOSEN.geex
       (when (not filename)
         (setq filename (geex-sqlalchemy-add-ext chosen)))
       ;; get the full file name path by prepending the
@@ -1014,7 +1014,7 @@ nuggets."
       (setq filename (concat (file-name-as-directory geex-mode-dir)
                              filename))
       ;; ok. now we can either load or create our new file
-        (find-file filename))
+      (find-file filename))
 
      ;; create a temp buffer into which to embed the
      ;; multiple nuggets in this list

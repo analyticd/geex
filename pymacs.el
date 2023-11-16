@@ -3,9 +3,9 @@
 ;; Copyright © 2001-2003, 2012, 2013 Progiciels Bourbeau-Pinard inc.
 
 ;; Author: François Pinard <pinard@iro.umontreal.ca>
-;; Maintainer: François Pinard <pinard@iro.umontreal.ca>
-;; URL: https://github.com/pinard/Pymacs
-;; Version: 0.25
+;; Maintainer: Dennis Gentry <dennis.gentry@gmail.com>
+;; URL: https://github.com/dgentry/Pymacs
+;; Version: 0.26
 ;; Keywords: Python interface protocol
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -27,8 +27,7 @@
 ;; Pymacs is a powerful tool which, once started from Emacs, allows
 ;; both-way communication between Emacs Lisp and Python.  Pymacs aims
 ;; Python as an extension language for Emacs rather than the other way
-;; around.  Visit http://pymacs.progiciels-bpi.ca to read its manual,
-;; which also contains installation instructions.
+;; around.  Visit http://github.com/dgentry/Pymacs for more information.
 
 ;;; Code:
 
@@ -98,8 +97,7 @@
 
 ;;; Published variables and functions.
 
-(defvar pymacs-python-command "/usr/bin/python" ;; (getenv "PYMACS_PYTHON")
-  ;; "python"
+(defvar pymacs-python-command "python"
   "Shell command used to start Python interpreter.")
 
 (defvar pymacs-load-path nil
@@ -192,7 +190,7 @@ which is the default."
   (unless (stringp module)
     (error "`%s' should be a string" module))
   (unless (pymacs-python-reference function)
-
+    (put function 'python-module module)
     (defalias function
       `(lambda (&rest args)
          ,(or docstring
@@ -269,7 +267,14 @@ equivalents, other structures are converted into Lisp handles."
                  "It interfaces to a Python function.\n\n"
                  (when python-doc
                    (if raw python-doc (substitute-command-keys python-doc)))))
-        ad-do-it))))
+        ad-do-it)))
+
+  (defadvice find-lisp-object-file-name (around pymacs-ad-py-module activate)
+    "Make it possible to Find help file."
+    (if (and (symbolp (ad-get-arg 0))
+             (get (ad-get-arg 0) 'python-module))
+        (setq ad-return-value (get (ad-get-arg 0) 'python-module))
+      ad-do-it)))
 
 (defun pymacs-python-reference (object)
   ;; Return the text reference of a Python object if possible, else nil.
@@ -648,9 +653,9 @@ The timer is used only if `post-gc-hook' is not available.")
           (if (and (pymacs-proper-list-p reply)
                    (= (length reply) 2)
                    (eq (car reply) 'version))
-              (unless (string-equal (cadr reply) "0.25")
+              (unless (string-equal (cadr reply) "0.26")
                 (pymacs-report-error
-                 "Pymacs Lisp version is 0.25, Python is %s"
+                 "Pymacs Lisp version is 0.26, Python is %s"
                  (cadr reply)))
             (pymacs-report-error "Pymacs got an invalid initial reply")))))
     (if (not pymacs-use-hash-tables)

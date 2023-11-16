@@ -87,6 +87,8 @@ often, because they take a while if you have lots of nuggets.")
   ;; remove everything in region, so we can put it back
   ;; do implicit links
   (geex-fontify-process-implicit-links beg end)
+  ;; (after 'org
+  ;;   (geex-fontify-org-bracket-links))
   ;; process the region (sect-headings etc.)
   (geex-xml-process-region beg end geex-fontify-regexp-list nil))
 
